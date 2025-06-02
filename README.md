@@ -9,7 +9,6 @@ Detona Ralph é um jogo web onde o jogador deve clicar rapidamente nos inimigos 
 
 ```
 /
-├── app.py              # Aplicação Flask principal
 ├── engine.js           # Script JavaScript com a lógica do jogo
 ├── index.html          # Página inicial do jogo (pode estar em templates/)
 ├── reset.py            # Script para resetar dados/placar
