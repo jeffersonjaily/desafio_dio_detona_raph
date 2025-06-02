@@ -30,3 +30,11 @@ Detona Ralph é um jogo web onde o jogador deve clicar rapidamente nos inimigos 
 - Controle de som (liga/desliga)
 - Áudios para hits, game over e música de fundo
 - Frontend responsivo e estilizado com fontes personalizadas
+
+## Contato
+
+Para dúvidas ou contribuições, entre em contato: [jeffersson.jaily@gmail.com]
+
+---
+
+**Divirta-se jogando Detona Ralph!**
