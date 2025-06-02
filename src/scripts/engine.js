@@ -9,8 +9,8 @@ const state = {
     values: {
         timerId: null,
         countdownTimerId: null,
-        gameSpeed: 1000,
-        countdown: 30,
+        gameSpeed: 1500,
+        countdown: 50,
         score: 0,
         lives: 5,
         hitPosition: null,
