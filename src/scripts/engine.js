@@ -12,7 +12,7 @@ const state = {
         gameSpeed: 1000,
         countdown: 30,
         score: 0,
-        lives: 4,
+        lives: 5,
         hitPosition: null,
         hasGameStarted: false,
         firstClickDone: false,
