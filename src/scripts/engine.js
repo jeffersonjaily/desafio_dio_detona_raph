@@ -9,10 +9,10 @@ const state = {
     values: {
         timerId: null,
         countdownTimerId: null,
-        gameSpeed: 1500,
-        countdown: 50,
+        gameSpeed: 1000,
+        countdown: 30,
         score: 0,
-        lives: 5,
+        lives: 4,
         hitPosition: null,
         hasGameStarted: false,
         firstClickDone: false,
@@ -21,10 +21,9 @@ const state = {
     }
 };
 
-// Configuração dos áudios
+// Configurações iniciais dos áudios
 state.values.gameMusic.loop = true;
 state.values.gameMusic.volume = 0.5;
-
 state.values.iniciarSound.loop = true;
 state.values.iniciarSound.volume = 0.7;
 
@@ -53,11 +52,13 @@ function randomSquare() {
 }
 
 function moveEnemy() {
+    if (state.values.timerId) return; // Evita múltiplos timers
     state.values.timerId = setInterval(randomSquare, state.values.gameSpeed);
 }
 
 function startCountdown() {
     state.view.countdown.textContent = state.values.countdown;
+    if (state.values.countdownTimerId) clearInterval(state.values.countdownTimerId);
     state.values.countdownTimerId = setInterval(() => {
         state.values.countdown--;
         state.view.countdown.textContent = state.values.countdown;
@@ -71,6 +72,7 @@ function startCountdown() {
 }
 
 function addListeners() {
+    // Adiciona os listeners apenas uma vez
     state.view.squares.forEach(square => {
         square.addEventListener('mousedown', () => {
             if (square.id === state.values.hitPosition) {
@@ -111,41 +113,102 @@ function loseLife() {
         endGame('💀 Você perdeu todas as vidas!');
     }
 }
+
 function endGame(message) {
     playGameOverSound();
     state.values.gameMusic.pause();
     state.values.gameMusic.currentTime = 0;
 
+    const currentScore = state.values.score;
+    const storedHighScore = parseInt(localStorage.getItem('highScore') || 0, 10);
+
+    if (currentScore > storedHighScore) {
+        localStorage.setItem('highScore', currentScore);
+    }
+
     setTimeout(() => {
-        const playerName = prompt(`${message}\n🏆 Pontuação final: ${state.values.score}\n\nDigite seu nome para salvar no placar:`);
+        const playerName = prompt(`${message}\n🏆 Pontuação final: ${currentScore}\n\nDigite seu nome para salvar no placar:`);
 
         if (playerName) {
-            // Envia para backend Flask via POST
             fetch('/save_score', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: playerName, score: state.values.score })
+                body: JSON.stringify({ name: playerName, score: currentScore })
             })
             .then(response => response.json())
             .then(data => {
                 alert('Pontuação salva! Veja o placar na página inicial.');
-                location.reload();
+                resetGame();
             })
             .catch(err => {
                 alert('Erro ao salvar pontuação.');
-                location.reload();
+                resetGame();
             });
         } else {
-            location.reload();
+            resetGame();
         }
     }, 500);
 }
 
+function resetGame() {
+    clearInterval(state.values.timerId);
+    clearInterval(state.values.countdownTimerId);
+    state.values.timerId = null;
+    state.values.countdownTimerId = null;
 
-function startGame() {
-    alert('🎮 Bem-vindo ao Detona Ralph!\nClique no inimigo para começar!');
+    const lastScore = state.values.score;
 
-    // Toca iniciar.mp3 com mute ativado para evitar bloqueio de autoplay
+    state.values.score = 0;
+    state.values.firstClickDone = false;
+    state.values.hasGameStarted = false;
+    state.view.score.textContent = 0;
+
+    state.view.squares.forEach(sq => sq.classList.remove('enemy'));
+
+    document.getElementById('difficulty-menu').style.display = 'flex';
+
+    // Atualiza vidas e contador conforme valores atuais
+    state.view.playerLives.textContent = 'x' + state.values.lives;
+    state.view.countdown.textContent = state.values.countdown;
+
+    const lastScoreDisplay = document.getElementById('lastScore');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    const highScore = localStorage.getItem('highScore') || 0;
+
+    if (lastScoreDisplay) {
+        lastScoreDisplay.textContent = `🧾 Última pontuação: ${lastScore}`;
+    }
+
+    if (highScoreDisplay) {
+        highScoreDisplay.textContent = `🥇 Melhor pontuação: ${highScore}`;
+    }
+}
+
+function setDifficulty(level) {
+    switch (level) {
+        case 'easy':
+            state.values.gameSpeed = 1200;
+            state.values.lives = 5;
+            state.values.countdown = 40;
+            break;
+        case 'hard':
+            state.values.gameSpeed = 700;
+            state.values.lives = 3;
+            state.values.countdown = 20;
+            break;
+        default:
+            state.values.gameSpeed = 1000;
+            state.values.lives = 4;
+            state.values.countdown = 30;
+    }
+
+    state.view.playerLives.textContent = 'x' + state.values.lives;
+    state.view.countdown.textContent = state.values.countdown;
+}
+
+function runGame() {
+    alert('Clique no inimigo para começar!');
+
     const iniciar = state.values.iniciarSound;
     iniciar.muted = true;
     iniciar.play().then(() => {
@@ -156,7 +219,6 @@ function startGame() {
 
     randomSquare();
     moveEnemy();
-    addListeners();
 
     state.view.btnSound = document.querySelector('#btnSound');
     if (state.view.btnSound) {
@@ -174,5 +236,18 @@ function startGame() {
     }
 }
 
-// Aguarda carregamento do DOM antes de iniciar o jogo
-window.addEventListener('DOMContentLoaded', startGame);
+window.addEventListener('DOMContentLoaded', () => {
+    addListeners();
+
+    const menu = document.getElementById('difficulty-menu');
+    const buttons = document.querySelectorAll('.btn-difficulty');
+
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const level = button.getAttribute('data-level');
+            setDifficulty(level);
+            menu.style.display = 'none';
+            runGame();
+        });
+    });
+});

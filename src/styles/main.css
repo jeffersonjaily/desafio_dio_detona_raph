@@ -13,6 +13,37 @@ html, body {
   overflow-x: hidden;
 }
 
+.difficulty-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000cc;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    z-index: 999;
+}
+
+.btn-difficulty {
+    padding: 20px 40px;
+    font-size: 16px;
+    background: red;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-difficulty:hover {
+    transform: scale(1.1);
+}
+
 .container {
   display: flex;
   flex-direction: column;
